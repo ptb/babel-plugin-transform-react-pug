@@ -1,7 +1,8 @@
-import {readdirSync, writeFileSync} from 'fs';
+import fs from 'fs';
+import path from 'path';
 
 const visitors = [];
-readdirSync(__dirname + '/../src/visitors').forEach(visitor => {
+fs.readdirSync(`${path.dirname('.')}/src/visitors`).forEach(visitor => {
   visitors.push(visitor.replace(/\.js$/, ''));
 });
 visitors.sort();
@@ -26,4 +27,7 @@ output.push(`};`);
 output.push(`export default visitors;`);
 output.push(``);
 
-writeFileSync(__dirname + '/../src/visitors.generated.js', output.join('\n'));
+fs.writeFileSync(
+  `${path.dirname('.')}/src/visitors.generated.js`,
+  output.join('\n'),
+);
