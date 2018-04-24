@@ -1,11 +1,12 @@
-import common from 'common-prefix';
-import parsePug from './parse-pug';
-import Context from './context';
-import {visitExpression} from './visitors';
-import {getInterpolatedTemplate} from './utils/interpolation';
-import {setBabelTypes} from './babel-types';
+const common = require('common-prefix');
+const parsePug = require('./parse-pug');
+const Context = require('./context');
+const visitExpression = require('./visitors').visitExpression;
+const getInterpolatedTemplate = require('./utils/interpolation')
+  .getInterpolatedTemplate;
+const setBabelTypes = require('./babel-types').setBabelTypes;
 
-export default function(babel) {
+module.exports = function(babel) {
   const {types: t} = babel;
 
   setBabelTypes(t);
@@ -64,4 +65,4 @@ export default function(babel) {
       },
     },
   };
-}
+};

@@ -90,5 +90,5 @@
     "test": "jest --coverage",
     "watch": "jest --coverage --watch"
   },
-  "version": "5.0.2"
+  "version": "5.0.7"
 }

@@ -1,7 +1,7 @@
-// @flow
+//
 
-import he from 'he';
+const he = require('he');
 
-export default function(input: string): string {
+module.exports = function(input) {
   return he.decode(input);
-}
+};

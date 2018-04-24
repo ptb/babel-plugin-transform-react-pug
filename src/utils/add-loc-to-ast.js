@@ -1,9 +1,9 @@
-// @flow
+//
 
-import {getCurrentLocation} from '../babel-types';
+const {getCurrentLocation} = require('../babel-types');
 
-function addLocToAst(_ast: BabelNode, line: number = getCurrentLocation().start.line) {
-  const ast = (_ast: Object);
+function addLocToAst(_ast, line = getCurrentLocation().start.line) {
+  const ast = _ast;
   if (ast.loc) {
     ast.loc = {
       start: {line: line + ast.loc.start.line - 1, column: 0},
@@ -18,4 +18,4 @@ function addLocToAst(_ast: BabelNode, line: number = getCurrentLocation().start.
     });
   }
 }
-export default addLocToAst;
+module.exports = addLocToAst;

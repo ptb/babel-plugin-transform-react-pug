@@ -1,31 +1,25 @@
-// @flow
+//
 
-import parseExpression from '../utils/parse-expression';
-import type Context from '../context';
-import t from '../babel-types';
-import {visitExpressions} from '../visitors';
+const parseExpression = require('../utils/parse-expression');
 
-function convertCases(
-  nodes: Array<Object>,
-  context: Context,
-  needle: Identifier,
-): Expression {
+const t = require('../babel-types');
+const {visitExpressions} = require('../visitors');
+
+function convertCases(nodes, context, needle) {
   if (nodes.length === 0) {
     return t.identifier('undefined');
   }
   const node = nodes[0];
-  const consequent = context.staticBlock(
-    (childContext: Context): Expression => {
-      const children = visitExpressions(node.block.nodes, childContext);
-      if (children.length === 1) {
-        return children[0];
-      }
-      if (children.length === 0) {
-        return t.identifier('undefined');
-      }
-      return t.arrayExpression(children);
-    },
-  );
+  const consequent = context.staticBlock(childContext => {
+    const children = visitExpressions(node.block.nodes, childContext);
+    if (children.length === 1) {
+      return children[0];
+    }
+    if (children.length === 0) {
+      return t.identifier('undefined');
+    }
+    return t.arrayExpression(children);
+  });
   if (node.expr === 'default') {
     return consequent;
   }
@@ -39,7 +33,7 @@ function convertCases(
 }
 
 const ConditionalVisitor = {
-  expression(node: Object, context: Context): Expression {
+  expression(node, context) {
     const needle = parseExpression(node.expr, context);
     const id =
       t.asIdentifier(needle) ||
@@ -57,4 +51,4 @@ const ConditionalVisitor = {
     return cases;
   },
 };
-export default ConditionalVisitor;
+module.exports = ConditionalVisitor;

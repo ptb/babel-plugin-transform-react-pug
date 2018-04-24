@@ -1,11 +1,11 @@
-// @flow
+//
 
-import type Context from '../context';
 import {transform} from '@babel/core';
 
-export default function parse(src: string, context: Context): Array<Statement> {
+module.exports = function parse(src, context) {
   try {
     return transform(src, {
+      ast: true,
       babelrc: false,
       code: false,
       parserOpts: context.file.parserOpts,
@@ -69,4 +69,4 @@ export default function parse(src: string, context: Context): Array<Statement> {
     );
     throw err;
   }
-}
+};

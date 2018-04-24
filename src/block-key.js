@@ -1,33 +1,24 @@
-// @flow
+//
 
-import error from 'pug-error';
-import t from './babel-types';
+const error = require('pug-error');
+const t = require('./babel-types');
 
 /*
  * We need to auto-generate keys whenever react-pug uses an array as the underlying
  * representation for a static list of elements.
  */
 
-import addString from './utils/add-string';
+const addString = require('./utils/add-string');
 
-type OnKeyCallback = (id: Expression) => mixed;
-
-declare interface Key {
-  getKey(fn: OnKeyCallback): void;
-  handleAttributes(attrs: Array<JSXAttribute | JSXSpreadAttribute>): void;
-  end(): void;
-}
-export type {Key};
-
-function toJsxValue(e: Expression): StringLiteral | JSXExpressionContainer {
+function toJsxValue(e) {
   return t.asStringLiteral(e) || t.jSXExpressionContainer(e);
 }
 
-export class BaseKey implements Key {
-  getKey(fn: OnKeyCallback) {
+export class BaseKey {
+  getKey(fn) {
     fn(t.stringLiteral('pug'));
   }
-  handleAttributes(attrs: Array<JSXAttribute | JSXSpreadAttribute>) {}
+  handleAttributes(attrs) {}
   end() {}
 }
 
@@ -36,13 +27,13 @@ export class BaseKey implements Key {
  * behind the sceens, but that do not actually involve iteration, and therefore
  * do not require the user to manually supply a key.
  */
-export class StaticBlock implements Key {
-  _ended: boolean = false;
-  _parentEnded: boolean = false;
-  _key: ?Expression = null;
-  _pending: Array<OnKeyCallback> = [];
-  _index: number = 0;
-  constructor(parent: Key, staticBlockID: string | number) {
+export class StaticBlock {
+  _ended = false;
+  _parentEnded = false;
+  _key = null;
+  _pending = [];
+  _index = 0;
+  constructor(parent, staticBlockID) {
     parent.getKey(parentKey => {
       this._parentEnded = true;
       this._key = addString(parentKey, t.stringLiteral(':' + staticBlockID));
@@ -60,7 +51,7 @@ export class StaticBlock implements Key {
       }
     }
   }
-  getKey(fn: OnKeyCallback) {
+  getKey(fn) {
     if (this._pending.indexOf(fn) === -1) {
       const index = this._index++;
       this._pending.push(key =>
@@ -69,7 +60,7 @@ export class StaticBlock implements Key {
     }
     this._update();
   }
-  handleAttributes(attrs: Array<JSXAttribute | JSXSpreadAttribute>) {
+  handleAttributes(attrs) {
     for (const _attr of attrs) {
       const attr = t.asJSXAttribute(_attr);
       if (attr && t.isJSXIdentifier(attr.name, {name: 'key'})) {
@@ -91,17 +82,15 @@ export class StaticBlock implements Key {
  * at least one elemnt within the array, and then we build keys for all the other
  * elements from that one intial key.
  */
-export class DynamicBlock implements Key {
+export class DynamicBlock {
   _ended = false;
   _localKey = null;
   _parentEnded = false;
   _parentKey = null;
   _pending = [];
   _index = 0;
-  _srcForError: string;
-  _lineNumberForError: number;
 
-  constructor(parent: Key, srcForError: string, lineNumberForError: number) {
+  constructor(parent, srcForError, lineNumberForError) {
     this._srcForError = srcForError;
     this._lineNumberForError = lineNumberForError;
     parent.getKey(parentKey => {
@@ -137,17 +126,17 @@ export class DynamicBlock implements Key {
     }
   }
 
-  getKey(fn: OnKeyCallback) {
+  getKey(fn) {
     if (this._pending.indexOf(fn) === -1) {
       const index = this._index++;
-      this._pending.push((key: Expression) => {
+      this._pending.push(key => {
         return fn(addString(key, t.stringLiteral(':' + index)));
       });
     }
     this._update();
   }
 
-  handleAttributes(attrs: Array<JSXAttribute | JSXSpreadAttribute>) {
+  handleAttributes(attrs) {
     for (const _attr of attrs) {
       const attr = t.asJSXAttribute(_attr);
       if (attr && t.isJSXIdentifier(attr.name, {name: 'key'})) {

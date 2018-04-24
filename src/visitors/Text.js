@@ -1,12 +1,11 @@
-// @flow
+//
 
-import type Context from '../context';
-import t from '../babel-types';
-import sanitizeText from '../utils/sanitize-text';
-import {
+const t = require('../babel-types');
+const sanitizeText = require('../utils/sanitize-text');
+const {
   INTERPOLATION_REFERENCE_REGEX,
   getInterpolationRefs,
-} from '../utils/interpolation';
+} = require('../utils/interpolation');
 
 /**
  * Find interpolation references in the text
@@ -17,11 +16,7 @@ import {
  * @returns {Expression} The interpolation or an array containing
  * text and interpolations.
  */
-function buildInterpolation(
-  value: string,
-  refs: Array<string>,
-  context: Context,
-): Expression {
+function buildInterpolation(value, refs, context) {
   const splitText = value.split(INTERPOLATION_REFERENCE_REGEX);
 
   if (refs.length === 1 && splitText.every(text => text === '')) {
@@ -49,7 +44,7 @@ function buildInterpolation(
 }
 
 const TextVisitor = {
-  jsx({val}: {val: string}, context: Context) {
+  jsx({val}, context) {
     const refs = getInterpolationRefs(val);
 
     if (refs) {
@@ -65,7 +60,7 @@ const TextVisitor = {
 
     return t.jSXText(content);
   },
-  expression({val}: {val: string}, context: Context) {
+  expression({val}, context) {
     const refs = getInterpolationRefs(val);
 
     if (refs) {
@@ -76,4 +71,4 @@ const TextVisitor = {
   },
 };
 
-export default TextVisitor;
+module.exports = TextVisitor;

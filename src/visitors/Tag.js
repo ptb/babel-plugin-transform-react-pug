@@ -1,18 +1,10 @@
-// @flow
+//
 
-import type Context from '../context';
-import parseExpression from '../utils/parse-expression';
-import t from '../babel-types';
-import {visitJsx, visitJsxExpressions} from '../visitors';
-import {getInterpolationRefs} from '../utils/interpolation';
-
-type PugAttribute = {
-  name: string,
-  val: string,
-  mustEscape: boolean,
-};
-
-type Attribute = JSXAttribute | JSXSpreadAttribute;
+const parseExpression = require('../utils/parse-expression');
+const t = require('../babel-types');
+const {visitJsx, visitJsxExpressions} = require('../visitors');
+const getInterpolationRefs = require('../utils/interpolation')
+  .getInterpolationRefs;
 
 /**
  * Get children nodes from the node, passing the node's
@@ -22,7 +14,7 @@ type Attribute = JSXAttribute | JSXSpreadAttribute;
  * nodes
  * @returns {Array<JSXValue>}
  */
-function getChildren(node: Object, context: Context): Array<JSXValue> {
+function getChildren(node, context) {
   return context.noKey(childContext =>
     (node.code ? [visitJsx(node.code, childContext)] : []).concat(
       visitJsxExpressions(node.block.nodes, childContext),
@@ -37,10 +29,10 @@ function getChildren(node: Object, context: Context): Array<JSXValue> {
  * @param {Context} context - The context
  * @returns {Array<Attribute>}
  */
-function getAttributes(node: Object, context: Context): Array<Attribute> {
-  const classes: Array<Object> = [];
-  const attrs: Array<Attribute> = node.attrs
-    .map(({name, val, mustEscape}: PugAttribute): Attribute | null => {
+function getAttributes(node, context) {
+  const classes = [];
+  const attrs = node.attrs
+    .map(({name, val, mustEscape}) => {
       if (/\.\.\./.test(name) && val === true) {
         return t.jSXSpreadAttribute(parseExpression(name.substr(3), context));
       }
@@ -95,7 +87,7 @@ function getAttributes(node: Object, context: Context): Array<Attribute> {
 
   if (classes.length) {
     const value = classes.every(cls => t.isStringLiteral(cls))
-      ? t.stringLiteral(classes.map(cls => (cls: any).value).join(' '))
+      ? t.stringLiteral(classes.map(cls => cls.value).join(' '))
       : t.jSXExpressionContainer(
           t.callExpression(
             t.memberExpression(
@@ -118,13 +110,7 @@ function getAttributes(node: Object, context: Context): Array<Attribute> {
  * @returns {Object} Contains the attributes and children
  * of the node.
  */
-function getAttributesAndChildren(
-  node: Object,
-  context: Context,
-): {
-  attrs: Array<JSXAttribute | JSXSpreadAttribute>,
-  children: Array<JSXValue>,
-} {
+function getAttributesAndChildren(node, context) {
   const children = getChildren(node, context);
 
   if (node.attributeBlocks.length) {
@@ -146,11 +132,7 @@ function getAttributesAndChildren(
  * the JSX element
  * @returns { JSXElement } The JSX element.
  */
-function buildJSXElement(
-  name: string,
-  attrs: Array<JSXAttribute | JSXSpreadAttribute>,
-  children,
-): JSXElement {
+function buildJSXElement(name, attrs, children) {
   const tagName = t.jSXIdentifier(name);
   const noChildren = children.length === 0;
 
@@ -176,17 +158,12 @@ function buildJSXElement(
  * attributes or children
  * @returns {?Object} The context's interpolation or a JSX element.
  */
-function getInterpolationByContext(
-  name: string,
-  context: Context,
-  attrs: Array<JSXAttribute | JSXSpreadAttribute>,
-  children: Array<JSXValue>,
-): ?Expression {
+function getInterpolationByContext(name, context, attrs, children) {
   if (!getInterpolationRefs(name)) {
     return null;
   }
 
-  const interpolation = (context.getInterpolationByRef(name): any);
+  const interpolation = context.getInterpolationByRef(name);
 
   const isReactComponent =
     t.isIdentifier(interpolation) &&
@@ -207,7 +184,7 @@ function getInterpolationByContext(
 }
 
 const TagVisitor = {
-  jsx(node: Object, context: Context): JSXValue {
+  jsx(node, context) {
     const {attrs, children} = getAttributesAndChildren(node, context);
     const interpolation = getInterpolationByContext(
       node.name,
@@ -224,7 +201,7 @@ const TagVisitor = {
 
     return buildJSXElement(node.name, attrs, children);
   },
-  expression(node: Object, context: Context): Expression {
+  expression(node, context) {
     const {attrs, children} = getAttributesAndChildren(node, context);
     const interpolation = getInterpolationByContext(
       node.name,
@@ -241,4 +218,4 @@ const TagVisitor = {
   },
 };
 
-export default TagVisitor;
+module.exports = TagVisitor;

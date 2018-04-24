@@ -1,36 +1,17 @@
-// @flow
+//
 
-import {readFileSync, existsSync} from 'fs';
-import error from 'pug-error';
-import type {Key} from './block-key';
-import {getCurrentLocation} from './babel-types';
-import {BaseKey, StaticBlock, DynamicBlock} from './block-key';
+const {readFileSync, existsSync} = require('fs');
+const error = require('pug-error');
 
-export type VariableKind = 'var' | 'let' | 'const';
-
-type Variable = {
-  kind: VariableKind,
-  id: Identifier,
-};
+const getCurrentLocation = require('./babel-types').getCurrentLocation;
+const {BaseKey, StaticBlock, DynamicBlock} = require('./block-key');
 
 class Context {
-  key: Key;
-  file: Object;
-  path: Object;
-  _variables: Map<string, Variable> = new Map();
-  variablesToDeclare: Array<Identifier> = [];
-  _nextBlockID: number = 0;
-  _parent: ?Context;
-  _interpolations: ?Map<string, Expression>;
+  _variables = new Map();
+  variablesToDeclare = [];
+  _nextBlockID = 0;
 
-  constructor(
-    definesScope: boolean,
-    key: Key,
-    parent: ?Context,
-    file: Object,
-    path: Object,
-    interpolations: ?Map<string, Expression>,
-  ) {
+  constructor(definesScope, key, parent, file, path, interpolations) {
     if (!definesScope && parent) {
       this.variablesToDeclare = parent.variablesToDeclare;
     }
@@ -41,8 +22,8 @@ class Context {
     this._interpolations = interpolations;
   }
 
-  error(code: string, message: string): Error {
-    const options: Object = {
+  error(code, message) {
+    const options = {
       filename: this.file.opts.filename,
       line: getCurrentLocation().start.line - 1,
       src: null,
@@ -55,7 +36,7 @@ class Context {
     return error(code, message, options);
   }
 
-  noKey<T>(fn: (context: Context) => T): T {
+  noKey(fn) {
     const childContext = new Context(
       false,
       new BaseKey(),
@@ -68,7 +49,7 @@ class Context {
     return result;
   }
 
-  staticBlock<T>(fn: (context: Context) => T): T {
+  staticBlock(fn) {
     const childContext = new Context(
       false,
       new StaticBlock(this.key, this._nextBlockID++),
@@ -81,9 +62,7 @@ class Context {
     return result;
   }
 
-  dynamicBlock<T>(
-    fn: (context: Context) => T,
-  ): {result: T, variables: Array<Identifier>} {
+  dynamicBlock(fn) {
     const childContext = new Context(
       true,
       new DynamicBlock(this.key, 'src', 0),
@@ -96,11 +75,11 @@ class Context {
     return {result, variables: childContext.variablesToDeclare};
   }
 
-  end(): void {
+  end() {
     this.key.end();
   }
 
-  getVariable(name: string): ?Variable {
+  getVariable(name) {
     const variable = this._variables.get(name);
 
     if (variable) {
@@ -115,7 +94,7 @@ class Context {
     return null;
   }
 
-  declareVariable(kind: 'var' | 'let' | 'const', name: string): Variable {
+  declareVariable(kind, name) {
     if (typeof name !== 'string') {
       throw new Error('variables may only be declared with strings');
     }
@@ -143,11 +122,11 @@ class Context {
     return variable;
   }
 
-  generateUidIdentifier(name: string): Identifier {
+  generateUidIdentifier(name) {
     return this.path.scope.generateUidIdentifier(name);
   }
 
-  getBaseLine(): number {
+  getBaseLine() {
     return this.path.node.loc.start.line;
   }
 
@@ -157,7 +136,7 @@ class Context {
    * @param { String } reference - The interpolation reference
    * @returns { ?Expression } The interpolation or nothing.
    */
-  getInterpolationByRef(reference: string): ?Expression {
+  getInterpolationByRef(reference) {
     let interpolation = null;
 
     if (
@@ -172,13 +151,9 @@ class Context {
     return this.getInterpolationByRef(reference);
   }
 
-  static create(
-    file: Object,
-    path: Object,
-    interpolations?: Map<string, Expression>,
-  ) {
+  static create(file, path, interpolations) {
     return new Context(true, new BaseKey(), null, file, path, interpolations);
   }
 }
 
-export default Context;
+module.exports = Context;

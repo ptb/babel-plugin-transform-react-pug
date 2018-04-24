@@ -1,13 +1,10 @@
-// @flow
+//
 
-import type Context from './context';
-import t, {setCurrentLocation} from './babel-types';
-import visitors from './visitors.generated.js';
+const t = require('./babel-types');
+const setCurrentLocation = require('./babel-types').setCurrentLocation;
+const visitors = require('./visitors.generated.js');
 
-export function visitExpressions(
-  nodes: Object[],
-  context: Context,
-): Expression[] {
+export function visitExpressions(nodes, context) {
   const result = [];
   nodes.forEach((node, i) => {
     if (node.type === 'Block') {
@@ -18,7 +15,7 @@ export function visitExpressions(
   });
   return result;
 }
-export function visitExpression(node: Object, context: Context): Expression {
+export function visitExpression(node, context) {
   const line = node.line + context.getBaseLine();
   setCurrentLocation({start: {line, column: 0}, end: {line, column: 0}});
   const v = visitors[node.type];
@@ -27,10 +24,7 @@ export function visitExpression(node: Object, context: Context): Expression {
   }
   return v.expression(node, context);
 }
-export function visitJsxExpressions(
-  nodes: Object[],
-  context: Context,
-): JSXValue[] {
+export function visitJsxExpressions(nodes, context) {
   const result = [];
   nodes.forEach((node, i) => {
     if (node.type === 'Block') {
@@ -41,7 +35,7 @@ export function visitJsxExpressions(
   });
   return result;
 }
-export function visitJsx(node: Object, context: Context): JSXValue {
+export function visitJsx(node, context) {
   const line = node.line + context.getBaseLine();
   setCurrentLocation({start: {line, column: 0}, end: {line, column: 0}});
   const v = visitors[node.type];

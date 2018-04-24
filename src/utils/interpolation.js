@@ -1,4 +1,4 @@
-// @flow
+//
 
 /**
  * The interpolation reference is used to indicate
@@ -20,7 +20,7 @@ const INTERPOLATION_REFERENCE_REGEX = /_react_pug_replace_\d+/g;
  * @returns { ?Array<string> } The references within
  * the value or null.
  */
-function getInterpolationRefs(value: string): ?Array<string> {
+function getInterpolationRefs(value) {
   return value.match(INTERPOLATION_REFERENCE_REGEX);
 }
 
@@ -33,28 +33,28 @@ function getInterpolationRefs(value: string): ?Array<string> {
  * @returns { Object } - The template with interpolation references
  * and a map containing the reference and the interpolation.
  */
-function getInterpolatedTemplate(tpl: Array<TemplateElement>, interpolations: Array<Expression>): { template: string, interpolationRef: Map<string, Expression> } {
-  const interpolationRef: Map<string, Expression> = new Map();
+function getInterpolatedTemplate(tpl, interpolations) {
+  const interpolationRef = new Map();
 
-  const template = tpl.map(({value}, index) => {
+  const template = tpl
+    .map(({value}, index) => {
+      const interpolation = interpolations[index];
+      const rawValue = value && typeof value === 'object' ? value.raw : '';
 
-    const interpolation = interpolations[index];
-    const rawValue = value && typeof value === 'object' ? value.raw : '';
+      if (interpolation) {
+        const ref = `${INTERPOLATION_REFERENCE_ID}${index}`;
+        interpolationRef.set(ref, interpolation);
+        return `${String(rawValue)}${ref}`;
+      }
 
-    if (interpolation) {
-      const ref = `${INTERPOLATION_REFERENCE_ID}${index}`;
-      interpolationRef.set(ref, interpolation);
-      return `${String(rawValue)}${ref}`;
-    }
-
-    return rawValue;
-
-  }).join('');
+      return rawValue;
+    })
+    .join('');
 
   return {template, interpolationRef};
 }
 
-export {
+module.exports = {
   INTERPOLATION_REFERENCE_ID,
   INTERPOLATION_REFERENCE_REGEX,
   getInterpolationRefs,

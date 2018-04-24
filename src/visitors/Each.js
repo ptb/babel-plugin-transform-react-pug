@@ -1,17 +1,11 @@
-// @flow
+//
 
-import parseExpression from '../utils/parse-expression';
-import type Context from '../context';
-import t from '../babel-types';
-import {visitExpressions} from '../visitors';
+const parseExpression = require('../utils/parse-expression');
 
-function getLoop(
-  node: Object,
-  context: Context,
-  id: Identifier,
-  arrayToIterateOver: Identifier,
-  arrayLength: MemberExpression,
-): Statement {
+const t = require('../babel-types');
+const {visitExpressions} = require('../visitors');
+
+function getLoop(node, context, id, arrayToIterateOver, arrayLength) {
   const index = node.key
     ? t.identifier(node.key)
     : context.generateUidIdentifier('pug_index');
@@ -55,8 +49,8 @@ function getLoop(
   return t.forStatement(init, test, update, t.blockStatement(body));
 }
 
-function getAlternate(node: Object, context: Context): Expression {
-  return context.staticBlock((childContext: Context): Expression => {
+function getAlternate(node, context) {
+  return context.staticBlock(childContext => {
     const children = visitExpressions(
       node.alternate ? node.alternate.nodes : [],
       childContext,
@@ -70,11 +64,7 @@ function getAlternate(node: Object, context: Context): Expression {
     return t.arrayExpression(children);
   });
 }
-function getTypeErrorTest(
-  node: Object,
-  context: Context,
-  arrayToIterateOver: Identifier,
-): Statement {
+function getTypeErrorTest(node, context, arrayToIterateOver) {
   return t.ifStatement(
     t.unaryExpression(
       '!',
@@ -100,7 +90,7 @@ function getTypeErrorTest(
 }
 
 const WhileVisitor = {
-  expression(node: Object, context: Context): Expression {
+  expression(node, context) {
     const id = context.generateUidIdentifier('pug_nodes');
 
     const arrayToIterateOver = context.generateUidIdentifier('pug_arr');
@@ -134,4 +124,4 @@ const WhileVisitor = {
   },
 };
 
-export default WhileVisitor;
+module.exports = WhileVisitor;

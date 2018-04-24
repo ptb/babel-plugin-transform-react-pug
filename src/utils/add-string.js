@@ -1,8 +1,8 @@
-// @flow
+//
 
-import t from '../babel-types';
+const t = require('../babel-types');
 
-export default function addString(node: Expression, rStr: StringLiteral): Expression {
+module.exports = function addString(node, rStr) {
   t.assertStringLiteral(rStr);
   const lStr = t.asStringLiteral(node);
   if (lStr) {
@@ -16,4 +16,4 @@ export default function addString(node: Expression, rStr: StringLiteral): Expres
     }
   }
   return t.binaryExpression('+', node, rStr);
-}
+};
